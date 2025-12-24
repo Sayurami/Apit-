@@ -1,18 +1,32 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
-const api = require("./api");
-const path = require('path');
+const path = require("path");
 
-app.use(express.static(path.join(__dirname, 'html')));
+const app = express();
+
+// Import your API routes
+const api = require("./api"); // if you have API routes, else remove
+
+// Enable CORS
 app.use(cors());
 app.use(express.json());
 app.set("json spaces", 2);
 
-app.use(api);
+// Serve static HTML files from 'html' folder
+app.use(express.static(path.join(__dirname, "html")));
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("OK");
+// Serve index.html at root to fix 404
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "html", "downlod.html"));
+});
+
+// Use API routes
+app.use(api); // if api.js exists
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;
