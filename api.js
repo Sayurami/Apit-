@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 const ytdl = require("ytdl-core");
 
-const { tiktokdl } = require("./lib/download/tiktok"); // Existing TikTok logic
+const { tiktokdl } = require("./lib/download/tiktok"); // TikTok downloader
 
 const CREATOR = "UDMODZ";
 const notwork = "This URL type not working on this site !!";
@@ -43,9 +43,14 @@ router.get("/download/yt", async (req, res) => {
     const info = await ytdl.getInfo(url);
     const title = info.videoDetails.title;
     const author = info.videoDetails.author.name;
-    const thumbnail = info.videoDetails.thumbnails.pop().url;
+    const thumbnail = info.videoDetails.thumbnails.slice(-1)[0].url;
     const formats = ytdl.filterFormats(info.formats, "videoandaudio");
-    const videoUrl = formats[0].url; // highest quality available
+
+    if (!formats.length) {
+      return res.send({ status: false, error: "No downloadable video format found" });
+    }
+
+    const videoUrl = formats[0].url;
 
     res.send({
       status: true,
@@ -60,7 +65,7 @@ router.get("/download/yt", async (req, res) => {
 
     count(); // optional visitor counter
   } catch (err) {
-    console.error(err);
+    console.error("YT Download Error:", err.message);
     res.send({ status: false, creator: CREATOR, error: "Failed to fetch YouTube video" });
   }
 });
