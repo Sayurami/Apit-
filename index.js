@@ -4,29 +4,27 @@ const path = require("path");
 
 const app = express();
 
-// Import your API routes
-const api = require("./api"); // if you have API routes, else remove
+// Import API routes
+const api = require("./api"); // TikTok download API
 
-// Enable CORS
+// Enable CORS & JSON
 app.use(cors());
 app.use(express.json());
 app.set("json spaces", 2);
 
-// Serve static HTML files from 'html' folder
+// Serve static HTML files
 app.use(express.static(path.join(__dirname, "html")));
 
-// Serve index.html at root to fix 404
+// Serve download.html at root to fix 404
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "html", "download.html"));
 });
 
 // Use API routes
-app.use(api); // if api.js exists
+app.use(api);
 
-// Start the server
+// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = app;
