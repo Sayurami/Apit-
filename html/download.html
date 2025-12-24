@@ -4,8 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SAYURA DOWNLOAD API - TikTok</title>
-<meta name="description" content="TikTok Downloader API. Easy to use, no login required.">
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://ferdiz-afk.github.io/Nice/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -22,7 +20,7 @@
 <main class="main" style="margin-top:80px; padding:20px;">
   <div class="container">
     <h5 class="mb-4">TikTok Downloader</h5>
-    
+
     <div class="card p-3 mb-3">
       <div class="row g-2 align-items-center">
         <div class="col-md-8">
@@ -35,7 +33,7 @@
     </div>
 
     <div id="tt-result" class="mt-3"></div>
-    
+
   </div>
 </main>
 
@@ -49,7 +47,7 @@
 document.getElementById("tt-download-btn").addEventListener("click", async function() {
   const url = document.getElementById("tt-url").value.trim();
   const resultDiv = document.getElementById("tt-result");
-  
+
   if (!url) {
     alert("Please enter a TikTok URL");
     return;
@@ -58,7 +56,6 @@ document.getElementById("tt-download-btn").addEventListener("click", async funct
   resultDiv.innerHTML = "<p>Loading...</p>";
 
   try {
-    // Call your TikTok API
     const response = await fetch(`/download/tiktokdl?url=${encodeURIComponent(url)}`);
     if (!response.ok) throw new Error("API request failed");
 
