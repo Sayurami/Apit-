@@ -1,4 +1,6 @@
 {
+  "name": "sayura-downloader",
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "pm2 start index.js --name apisite",
@@ -12,6 +14,7 @@
     "express": "^4.19.2",
     "pm2": "^5.2.0",
     "ytdl-core": "latest",
-    "@dark-yasiya/nexara": "^1.0.0"
+    "@dark-yasiya/nexara": "^1.0.0",
+    "node-fetch": "^2.6.12"
   }
 }
