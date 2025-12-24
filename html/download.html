@@ -18,11 +18,11 @@
 <div class="container">
   <h2 class="text-center text-primary mb-4">SAYURA - Downloader</h2>
 
-  <!-- Video download input -->
+  <!-- Video download -->
   <input type="text" id="video-url" class="form-control mb-2" placeholder="Enter TikTok or YouTube URL">
   <button class="btn btn-danger mb-4 w-100" id="download-video-btn">Download Video</button>
 
-  <!-- Wallpaper search input -->
+  <!-- Wallpaper search -->
   <input type="text" id="wallpaper-query" class="form-control mb-2" placeholder="Wallpaper query">
   <input type="number" id="wallpaper-page" class="form-control mb-2" placeholder="Wallpaper page">
   <button class="btn btn-success mb-4 w-100" id="download-wallpaper-btn">Search Wallpaper</button>
@@ -38,43 +38,41 @@ async function fetchVideo(url) {
   resultDiv.innerHTML = "<p class='text-center'>Loading video...</p>";
 
   if (!url) {
-    resultDiv.innerHTML = "<p class='text-danger text-center'>Please enter a TikTok or YouTube URL</p>";
+    resultDiv.innerHTML = "<p class='text-danger text-center'>Please enter a valid URL</p>";
+    return;
+  }
+
+  let endpoint;
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    endpoint = `/download/yt?url=${encodeURIComponent(url)}`;
+  } else if (url.includes("tiktok.com")) {
+    endpoint = `/download/tiktokdl?url=${encodeURIComponent(url)}`;
+  } else {
+    resultDiv.innerHTML = "<p class='text-danger text-center'>Invalid video URL</p>";
     return;
   }
 
   try {
-    let endpoint = "";
-    if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      endpoint = "/download/yt?url=" + encodeURIComponent(url);
-    } else if (url.includes("tiktok.com")) {
-      endpoint = "/download/tiktokdl?url=" + encodeURIComponent(url);
-    } else {
-      resultDiv.innerHTML = "<p class='text-danger text-center'>Invalid video URL</p>";
-      return;
-    }
-
     const res = await fetch(endpoint);
     const data = await res.json();
 
     if (!data.status) {
-      resultDiv.innerHTML = `<p class='text-danger text-center'>${data.err || data.error}</p>`;
+      resultDiv.innerHTML = `<p class="text-danger text-center">${data.err || data.error}</p>`;
       return;
     }
 
     const result = data.result;
-
-    // Show details + Download button
     resultDiv.innerHTML = `
       <div class="card shadow p-3 bg-white rounded">
-        <img src="${result.thumbnail}" alt="Thumbnail" class="mb-2">
+        <img src="${result.thumbnail}" alt="Thumbnail">
         <div class="card-body">
           <h5 class="card-title">${result.title || "No Title"}</h5>
           ${result.author ? `<p class="card-text">Author: ${result.author}</p>` : ""}
-          <a href="${result.videoUrl}" target="_blank" class="btn btn-primary btn-download">Download Video</a>
+          ${result.caption ? `<p class="card-text">${result.caption}</p>` : ""}
+          ${result.videoUrl ? `<a href="${result.videoUrl}" target="_blank" class="btn btn-primary btn-download">Download Video</a>` : ""}
         </div>
       </div>
     `;
-
   } catch (err) {
     resultDiv.innerHTML = `<p class='text-danger text-center'>Error: ${err.message}</p>`;
   }
@@ -83,13 +81,15 @@ async function fetchVideo(url) {
 async function fetchWallpaper(query, page) {
   const resultDiv = document.getElementById("result");
   resultDiv.innerHTML = "<p class='text-center'>Loading wallpapers...</p>";
-  try {
-    if (!query || !page) {
-      resultDiv.innerHTML = "<p class='text-danger text-center'>Please enter query and page number</p>";
-      return;
-    }
 
-    const endpoint = `/download/wallpaper?text=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}`;
+  if (!query || !page) {
+    resultDiv.innerHTML = "<p class='text-danger text-center'>Please enter query and page number</p>";
+    return;
+  }
+
+  const endpoint = `/download/wallpaper?text=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}`;
+
+  try {
     const res = await fetch(endpoint);
     const data = await res.json();
 
@@ -116,7 +116,6 @@ async function fetchWallpaper(query, page) {
   }
 }
 
-// Event listeners
 document.getElementById("download-video-btn").addEventListener("click", () => {
   const url = document.getElementById("video-url").value.trim();
   fetchVideo(url);
