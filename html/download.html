@@ -61,10 +61,17 @@ document.getElementById("tt-download-btn").addEventListener("click", async funct
 
     const data = await response.json();
 
+    if (!data.status) {
+      resultDiv.innerHTML = `<span class="text-danger">${data.err || data.error || "Something went wrong"}</span>`;
+      return;
+    }
+
+    const result = data.result || {};
+
     resultDiv.innerHTML = `
       <h6>Download Result:</h6>
-      ${data.video ? `<p><strong>Video:</strong> <a href="${data.video}" target="_blank">Click to download</a></p>` : ""}
-      ${data.audio ? `<p><strong>Audio:</strong> <a href="${data.audio}" target="_blank">Click to download</a></p>` : ""}
+      ${result.video ? `<p><strong>Video:</strong> <a href="${result.video}" target="_blank">Click to download</a></p>` : ""}
+      ${result.audio ? `<p><strong>Audio:</strong> <a href="${result.audio}" target="_blank">Click to download</a></p>` : ""}
     `;
   } catch (err) {
     console.error(err);
