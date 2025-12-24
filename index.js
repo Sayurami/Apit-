@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, "html")));
 
 // Serve index.html at root to fix 404
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "html", "downlod.html"));
+  res.sendFile(path.join(__dirname, "html", "download.html"));
 });
 
 // Use API routes
