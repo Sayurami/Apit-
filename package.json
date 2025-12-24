@@ -11,7 +11,7 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "pm2": "^5.2.0",
-    "ytdl-core": "^4.11.0",
+    "ytdl-core": "latest",
     "@dark-yasiya/nexara": "^1.0.0"
   }
 }
