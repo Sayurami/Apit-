@@ -3,56 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SAYURA - Downloader</title>
+<title>SAYURA - TikTok & YouTube Downloader</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
   body { padding: 50px; background: #f8f9fa; }
   .card { max-width: 600px; margin: 20px auto; }
   .card img { width: 100%; height: auto; border-radius: 5px; }
   .btn-download { margin-right: 10px; margin-top: 10px; }
-  .wallpaper-img { height: 200px; object-fit: cover; border-radius: 5px; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 class="text-center text-primary mb-4">SAYURA - Downloader</h2>
+  <h2 class="text-center text-primary mb-4">SAYURA - TikTok & YouTube Downloader</h2>
 
-  <!-- Video download -->
   <input type="text" id="video-url" class="form-control mb-2" placeholder="Enter TikTok or YouTube URL">
-  <button class="btn btn-danger mb-4 w-100" id="download-video-btn">Download Video</button>
-
-  <!-- Wallpaper search -->
-  <input type="text" id="wallpaper-query" class="form-control mb-2" placeholder="Wallpaper query">
-  <input type="number" id="wallpaper-page" class="form-control mb-2" placeholder="Wallpaper page">
-  <button class="btn btn-success mb-4 w-100" id="download-wallpaper-btn">Search Wallpaper</button>
+  <button class="btn btn-danger mb-4 w-100" id="download-btn">Download</button>
 
   <div id="result">
-    <p class="text-center">Result will appear here...</p>
+    <p class="text-center">Download Result will appear here...</p>
   </div>
 </div>
 
 <script>
-async function fetchVideo(url) {
+document.getElementById("download-btn").addEventListener("click", async () => {
+  const url = document.getElementById("video-url").value.trim();
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = "<p class='text-center'>Loading video...</p>";
 
   if (!url) {
-    resultDiv.innerHTML = "<p class='text-danger text-center'>Please enter a valid URL</p>";
+    alert("Please enter a TikTok or YouTube URL");
     return;
   }
 
-  let endpoint;
-  if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    endpoint = `/download/yt?url=${encodeURIComponent(url)}`;
-  } else if (url.includes("tiktok.com")) {
-    endpoint = `/download/tiktokdl?url=${encodeURIComponent(url)}`;
-  } else {
-    resultDiv.innerHTML = "<p class='text-danger text-center'>Invalid video URL</p>";
-    return;
-  }
+  resultDiv.innerHTML = "<p class='text-center'>Loading...</p>";
 
   try {
+    let endpoint = "";
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      endpoint = "/download/yt?url=" + encodeURIComponent(url);
+    } else if (url.includes("tiktok.com")) {
+      endpoint = "/download/tiktokdl?url=" + encodeURIComponent(url);
+    } else {
+      resultDiv.innerHTML = "<p class='text-danger text-center'>Invalid URL format</p>";
+      return;
+    }
+
     const res = await fetch(endpoint);
     const data = await res.json();
 
@@ -62,7 +57,8 @@ async function fetchVideo(url) {
     }
 
     const result = data.result;
-    resultDiv.innerHTML = `
+
+    let html = `
       <div class="card shadow p-3 bg-white rounded">
         <img src="${result.thumbnail}" alt="Thumbnail">
         <div class="card-body">
@@ -70,61 +66,16 @@ async function fetchVideo(url) {
           ${result.author ? `<p class="card-text">Author: ${result.author}</p>` : ""}
           ${result.caption ? `<p class="card-text">${result.caption}</p>` : ""}
           ${result.videoUrl ? `<a href="${result.videoUrl}" target="_blank" class="btn btn-primary btn-download">Download Video</a>` : ""}
+          ${result.audio ? `<a href="${result.audio}" target="_blank" class="btn btn-success btn-download">Download Audio</a>` : ""}
         </div>
       </div>
     `;
-  } catch (err) {
-    resultDiv.innerHTML = `<p class='text-danger text-center'>Error: ${err.message}</p>`;
-  }
-}
 
-async function fetchWallpaper(query, page) {
-  const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = "<p class='text-center'>Loading wallpapers...</p>";
-
-  if (!query || !page) {
-    resultDiv.innerHTML = "<p class='text-danger text-center'>Please enter query and page number</p>";
-    return;
-  }
-
-  const endpoint = `/download/wallpaper?text=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}`;
-
-  try {
-    const res = await fetch(endpoint);
-    const data = await res.json();
-
-    if (!data.status || !data.result || !data.result.length) {
-      resultDiv.innerHTML = "<p class='text-center'>No wallpapers found.</p>";
-      return;
-    }
-
-    let html = `<div class="row">`;
-    data.result.forEach(img => {
-      html += `
-        <div class="col-md-4 mb-3">
-          <div class="card">
-            <img src="${img}" class="card-img-top wallpaper-img">
-          </div>
-        </div>
-      `;
-    });
-    html += `</div>`;
     resultDiv.innerHTML = html;
 
   } catch (err) {
-    resultDiv.innerHTML = `<p class='text-danger text-center'>Error: ${err.message}</p>`;
+    resultDiv.innerHTML = `<p class="text-danger text-center">Error: ${err.message}</p>`;
   }
-}
-
-document.getElementById("download-video-btn").addEventListener("click", () => {
-  const url = document.getElementById("video-url").value.trim();
-  fetchVideo(url);
-});
-
-document.getElementById("download-wallpaper-btn").addEventListener("click", () => {
-  const query = document.getElementById("wallpaper-query").value.trim();
-  const page = document.getElementById("wallpaper-page").value.trim();
-  fetchWallpaper(query, page);
 });
 </script>
 
