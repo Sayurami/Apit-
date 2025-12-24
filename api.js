@@ -1,33 +1,33 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const ytdl = require("ytdl-core");
-
-const { tiktokdl } = require("./lib/download/tiktok"); // TikTok downloader
+const { ytdown } = require("./lib/download/youtube");
+const { tiktokdl } = require("./lib/download/tiktok");
+const { wallpaper } = require("./lib/download/wallpaper");
 
 const CREATOR = "UDMODZ";
-const notwork = "This URL type not working on this site !!";
+const err_mg = "Something went wrong";
 
 // Optional visitor counter
 async function count() {
-  return await axios.get("https://visitor.api.akuari.my.id/umum/view/tambah?id=darkyasiya");
+  try {
+    await axios.get("https://visitor.api.akuari.my.id/umum/view/tambah?id=darkyasiya");
+  } catch {}
 }
 
 // ------------------- TikTok Download -------------------
-router.get("/download/tiktokdl", (req, res) => {
+router.get("/download/tiktokdl", async (req, res) => {
   const url = req.query.url || req.query.link;
+  if (!url) return res.send({ status: false, owner: CREATOR, err: "Please give me TikTok URL!" });
 
-  if (!url) return res.send({ status: false, owner: '@UDMODZ', err: 'Please give me TikTok URL !' });
-
-  tiktokdl(url)
-    .then((result) => {
-      res.send({ status: true, creator: CREATOR, result: result || {} });
-      count(); // optional
-    })
-    .catch((err) => {
-      res.send({ status: false, creator: CREATOR, error: notwork });
-      console.error(err);
-    });
+  try {
+    const result = await tiktokdl(url);
+    res.send({ status: true, creator: CREATOR, result });
+    count();
+  } catch (err) {
+    console.error(err);
+    res.send({ status: false, creator: CREATOR, error: "TikTok URL failed" });
+  }
 });
 
 // ------------------- YouTube Download -------------------
@@ -36,37 +36,32 @@ router.get("/download/yt", async (req, res) => {
   if (!url) return res.send({ status: false, error: "Please provide YouTube URL" });
 
   try {
-    if (!ytdl.validateURL(url)) {
-      return res.send({ status: false, error: "Invalid YouTube URL" });
-    }
+    const result = await ytdown(url);
+    if (result.error) return res.send({ status: false, creator: CREATOR, error: result.error });
 
-    const info = await ytdl.getInfo(url);
-    const title = info.videoDetails.title;
-    const author = info.videoDetails.author.name;
-    const thumbnail = info.videoDetails.thumbnails.slice(-1)[0].url;
-    const formats = ytdl.filterFormats(info.formats, "videoandaudio");
-
-    if (!formats.length) {
-      return res.send({ status: false, error: "No downloadable video format found" });
-    }
-
-    const videoUrl = formats[0].url;
-
-    res.send({
-      status: true,
-      creator: CREATOR,
-      result: {
-        title,
-        author,
-        thumbnail,
-        videoUrl
-      }
-    });
-
-    count(); // optional visitor counter
+    res.send({ status: true, creator: CREATOR, result });
+    count();
   } catch (err) {
-    console.error("YT Download Error:", err.message);
+    console.error(err);
     res.send({ status: false, creator: CREATOR, error: "Failed to fetch YouTube video" });
+  }
+});
+
+// ------------------- Wallpaper Search -------------------
+router.get("/download/wallpaper", async (req, res) => {
+  const q = req.query.text || req.query.q;
+  const page = req.query.page;
+
+  if (!q) return res.send({ status: false, owner: CREATOR, err: "Please give me query!" });
+  if (!page) return res.send({ status: false, owner: CREATOR, err: "Please give me a page!" });
+
+  try {
+    const data = await wallpaper(q, page);
+    res.send({ status: true, creator: CREATOR, result: data });
+    count();
+  } catch (err) {
+    console.error(err);
+    res.send({ status: false, creator: CREATOR, error: err_mg });
   }
 });
 
