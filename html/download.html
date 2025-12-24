@@ -22,34 +22,20 @@
 <main class="main" style="margin-top:80px; padding:20px;">
   <div class="container">
     <h5 class="mb-4">TikTok Downloader</h5>
-    <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr class="table-secondary">
-            <th>No</th>
-            <th>Feature Name</th>
-            <th>Apikey Request</th>
-            <th>Description</th>
-            <th>Query Parameter</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>06</td>
-            <td>Tiktok Downloader</td>
-            <td>✳️</td>
-            <td>Download Tiktok video, sound.</td>
-            <td>url</td>
-            <td><span class="btn btn-sm btn-success">TRUE</span></td>
-            <td>
-              <a class="btn btn-sm btn-danger" href="/download/tiktokdl?url=https://vt.tiktok.com/ZSje1Vkup/" target="_blank">Details</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    
+    <div class="card p-3 mb-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-8">
+          <input type="text" id="tt-url" class="form-control" placeholder="Enter TikTok URL" />
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-danger w-100" id="tt-download-btn">Download</button>
+        </div>
+      </div>
     </div>
+
+    <div id="tt-result" class="mt-3"></div>
+    
   </div>
 </main>
 
@@ -58,5 +44,37 @@
 </footer>
 
 <script src="https://ferdiz-afk.github.io/Nice/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.getElementById("tt-download-btn").addEventListener("click", async function() {
+  const url = document.getElementById("tt-url").value.trim();
+  const resultDiv = document.getElementById("tt-result");
+  
+  if (!url) {
+    alert("Please enter a TikTok URL");
+    return;
+  }
+
+  resultDiv.innerHTML = "<p>Loading...</p>";
+
+  try {
+    // Call your TikTok API
+    const response = await fetch(`/download/tiktokdl?url=${encodeURIComponent(url)}`);
+    if (!response.ok) throw new Error("API request failed");
+
+    const data = await response.json();
+
+    resultDiv.innerHTML = `
+      <h6>Download Result:</h6>
+      ${data.video ? `<p><strong>Video:</strong> <a href="${data.video}" target="_blank">Click to download</a></p>` : ""}
+      ${data.audio ? `<p><strong>Audio:</strong> <a href="${data.audio}" target="_blank">Click to download</a></p>` : ""}
+    `;
+  } catch (err) {
+    console.error(err);
+    resultDiv.innerHTML = `<span class="text-danger">Error: ${err.message}</span>`;
+  }
+});
+</script>
+
 </body>
 </html>
