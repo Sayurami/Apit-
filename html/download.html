@@ -3,35 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SAYURA - TikTok & YouTube Downloader</title>
+<title>SAYURA - Downloader</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
   body { padding: 50px; background: #f8f9fa; }
   .card { max-width: 600px; margin: 20px auto; }
   .card img { width: 100%; height: auto; border-radius: 5px; }
   .btn-download { margin-right: 10px; margin-top: 10px; }
+  .wallpaper-img { height: 200px; object-fit: cover; border-radius: 5px; }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 class="text-center text-primary mb-4">SAYURA - TikTok & YouTube Downloader</h2>
+  <h2 class="text-center text-primary mb-4">SAYURA - TikTok, YouTube & Wallpaper Downloader</h2>
 
-  <input type="text" id="video-url" class="form-control mb-2" placeholder="Enter TikTok or YouTube URL">
-  <button class="btn btn-danger mb-4 w-100" id="download-btn">Download</button>
+  <input type="text" id="input-text" class="form-control mb-2" placeholder="Enter TikTok/YouTube URL or Wallpaper query">
+  <input type="number" id="wallpage" class="form-control mb-2" placeholder="Wallpaper Page (if searching wallpaper)">
+  <button class="btn btn-danger mb-4 w-100" id="download-btn">Search / Download</button>
 
   <div id="result">
-    <p class="text-center">Download Result will appear here...</p>
+    <p class="text-center">Result will appear here...</p>
   </div>
 </div>
 
 <script>
 document.getElementById("download-btn").addEventListener("click", async () => {
-  const url = document.getElementById("video-url").value.trim();
+  const input = document.getElementById("input-text").value.trim();
+  const page = document.getElementById("wallpage").value.trim();
   const resultDiv = document.getElementById("result");
 
-  if (!url) {
-    alert("Please enter a TikTok or YouTube URL");
+  if (!input) {
+    alert("Please enter a URL or query");
     return;
   }
 
@@ -39,13 +42,19 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
   try {
     let endpoint = "";
-    if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      endpoint = "/download/yt?url=" + encodeURIComponent(url);
-    } else if (url.includes("tiktok.com")) {
-      endpoint = "/download/tiktokdl?url=" + encodeURIComponent(url);
+    let isWallpaper = false;
+
+    if (input.includes("youtube.com") || input.includes("youtu.be")) {
+      endpoint = "/download/yt?url=" + encodeURIComponent(input);
+    } else if (input.includes("tiktok.com")) {
+      endpoint = "/download/tiktokdl?url=" + encodeURIComponent(input);
     } else {
-      resultDiv.innerHTML = "<p class='text-danger text-center'>Invalid URL format</p>";
-      return;
+      if (!page) {
+        resultDiv.innerHTML = "<p class='text-danger text-center'>For wallpaper search, please enter page number!</p>";
+        return;
+      }
+      endpoint = `/download/wallpaper?text=${encodeURIComponent(input)}&page=${encodeURIComponent(page)}`;
+      isWallpaper = true;
     }
 
     const res = await fetch(endpoint);
@@ -56,22 +65,40 @@ document.getElementById("download-btn").addEventListener("click", async () => {
       return;
     }
 
-    const result = data.result;
+    if (isWallpaper) {
+      if (!data.result || !data.result.length) {
+        resultDiv.innerHTML = "<p class='text-center'>No wallpapers found.</p>";
+        return;
+      }
 
-    let html = `
-      <div class="card shadow p-3 bg-white rounded">
-        <img src="${result.thumbnail}" alt="Thumbnail">
-        <div class="card-body">
-          <h5 class="card-title">${result.title || "No Title"}</h5>
-          ${result.author ? `<p class="card-text">Author: ${result.author}</p>` : ""}
-          ${result.caption ? `<p class="card-text">${result.caption}</p>` : ""}
-          ${result.videoUrl ? `<a href="${result.videoUrl}" target="_blank" class="btn btn-primary btn-download">Download Video</a>` : ""}
-          ${result.audio ? `<a href="${result.audio}" target="_blank" class="btn btn-success btn-download">Download Audio</a>` : ""}
+      let html = `<div class="row">`;
+      data.result.forEach(img => {
+        html += `
+          <div class="col-md-4 mb-3">
+            <div class="card">
+              <img src="${img}" class="card-img-top wallpaper-img">
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      resultDiv.innerHTML = html;
+    } else {
+      const result = data.result;
+      let html = `
+        <div class="card shadow p-3 bg-white rounded">
+          <img src="${result.thumbnail}" alt="Thumbnail">
+          <div class="card-body">
+            <h5 class="card-title">${result.title || "No Title"}</h5>
+            ${result.author ? `<p class="card-text">Author: ${result.author}</p>` : ""}
+            ${result.caption ? `<p class="card-text">${result.caption}</p>` : ""}
+            ${result.videoUrl ? `<a href="${result.videoUrl}" target="_blank" class="btn btn-primary btn-download">Download Video</a>` : ""}
+            ${result.audio ? `<a href="${result.audio}" target="_blank" class="btn btn-success btn-download">Download Audio</a>` : ""}
+          </div>
         </div>
-      </div>
-    `;
-
-    resultDiv.innerHTML = html;
+      `;
+      resultDiv.innerHTML = html;
+    }
 
   } catch (err) {
     resultDiv.innerHTML = `<p class="text-danger text-center">Error: ${err.message}</p>`;
