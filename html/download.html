@@ -1,62 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SAYURA DOWNLOAD API - TikTok</title>
-<meta name="description" content="TikTok Downloader API. Easy to use, no login required.">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://ferdiz-afk.github.io/Nice/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://ferdiz-afk.github.io/Nice/assets/css/style.css" rel="stylesheet">
+<title>SAYURA - TikTok Downloader</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { padding: 50px; background: #f8f9fa; }
+  .card { max-width: 500px; margin: 20px auto; }
+  .card img { width: 100%; height: auto; border-radius: 5px; }
+  .btn-download { margin-right: 10px; margin-top: 10px; }
+</style>
 </head>
 <body>
 
-<header class="header fixed-top d-flex align-items-center" style="width:100%; padding:10px; background:#f8f9fa;">
-  <div class="d-flex align-items-center justify-content-between w-100">
-    <h2 class="text-primary">SAYURA - TikTok API</h2>
+<div class="container">
+  <h2 class="text-center text-primary mb-4">SAYURA - TikTok Downloader</h2>
+
+  <input type="text" id="tt-url" class="form-control mb-2" placeholder="Enter TikTok URL">
+  <button class="btn btn-danger mb-4 w-100" id="tt-download-btn">Download</button>
+
+  <div id="tt-result">
+    <p class="text-center">Download Result will appear here...</p>
   </div>
-</header>
+</div>
 
-<main class="main" style="margin-top:80px; padding:20px;">
-  <div class="container">
-    <h5 class="mb-4">TikTok Downloader</h5>
-    <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr class="table-secondary">
-            <th>No</th>
-            <th>Feature Name</th>
-            <th>Apikey Request</th>
-            <th>Description</th>
-            <th>Query Parameter</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>01</td>
-            <td>Tiktok Downloader</td>
-            <td>✳️</td>
-            <td>Download Tiktok video, sound.</td>
-            <td>url</td>
-            <td><span class="btn btn-sm btn-success">TRUE</span></td>
-            <td>
-              <a class="btn btn-sm btn-danger" href="/download/tiktokdl?url=https://vt.tiktok.com/ZSje1Vkup/" target="_blank">Details</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</main>
+<script>
+document.getElementById("tt-download-btn").addEventListener("click", async () => {
+  const url = document.getElementById("tt-url").value.trim();
+  const resultDiv = document.getElementById("tt-result");
 
-<footer class="footer text-center py-3" style="background:#f8f9fa; position:fixed; bottom:0; width:100%;">
-  &copy; 2026 SAYURA - TIKTOK API
-</footer>
+  if (!url) {
+    alert("Please enter a TikTok URL");
+    return;
+  }
 
-<script src="https://ferdiz-afk.github.io/Nice/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  resultDiv.innerHTML = "<p class='text-center'>Loading...</p>";
+
+  try {
+    const res = await fetch(`/download/tiktokdl?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+
+    if (!data.status) {
+      resultDiv.innerHTML = `<p class="text-danger text-center">${data.err || data.error}</p>`;
+      return;
+    }
+
+    const result = data.result;
+
+    let html = `
+      <div class="card shadow p-3 bg-white rounded">
+        <img src="${result.thumbnail}" alt="Thumbnail">
+        <div class="card-body">
+          <h5 class="card-title">${result.title || "No Title"}</h5>
+          <p class="card-text">${result.caption || "No Caption"}</p>
+          ${result.nowm ? `<a href="${result.nowm}" target="_blank" class="btn btn-primary btn-download">Download Video</a>` : ""}
+          ${result.audio ? `<a href="${result.audio}" target="_blank" class="btn btn-success btn-download">Download Audio</a>` : ""}
+        </div>
+      </div>
+    `;
+
+    resultDiv.innerHTML = html;
+
+  } catch (err) {
+    resultDiv.innerHTML = `<p class="text-danger text-center">Error: ${err.message}</p>`;
+  }
+});
+</script>
+
 </body>
 </html>
